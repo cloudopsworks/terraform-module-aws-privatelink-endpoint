@@ -4,6 +4,11 @@
 #            Distributed Under Apache v2.0 License
 #
 
+variable "name_prefix" {
+  description = "Prefix for the name of the private link"
+  type        = string
+}
+
 variable "vpc" {
   description = "VPC object to use for the private link"
   type        = any

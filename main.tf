@@ -5,13 +5,15 @@
 #
 
 locals {
-  sglist = try(var.settings.security_group_ids, [])
+  sglist             = try(var.settings.security_group_ids, [])
+  endpoint_name      = "ep-${var.name_prefix}-${local.system_name_short}"
+  endpoint_name_long = "ep-${var.name_prefix}-${local.system_name}"
 }
 
 resource "aws_security_group" "default" {
   vpc_id      = var.vpc.vpc_id
-  name        = "endpoint-${local.system_name}-sg"
-  description = "Security Group for Endpoint Private Link"
+  name        = "${local.endpoint_name}-sg"
+  description = "Security Group for Endpoint Private Link - ${local.endpoint_name_long}"
 
   # Egress all
   egress {
@@ -23,7 +25,7 @@ resource "aws_security_group" "default" {
   }
 
   tags = merge({
-    Name = "endpoint-${local.system_name}-sg"
+    Name = "${local.endpoint_name}-sg"
   }, local.all_tags)
 
   lifecycle {
@@ -33,7 +35,7 @@ resource "aws_security_group" "default" {
 
 resource "aws_security_group_rule" "default_ingress" {
   security_group_id = aws_security_group.default.id
-  description       = "Allow Traffic for Endpoint"
+  description       = "Allow Traffic for Endpoint - ${local.endpoint_name_long}"
   type              = "ingress"
   protocol          = "TCP"
   from_port         = try(var.settings.port, 1024)
@@ -57,6 +59,6 @@ resource "aws_vpc_endpoint" "this" {
   }
 
   tags = merge({
-    Name = "endpoint-${local.system_name}-vpce"
+    Name = "${local.endpoint_name}-vpce"
   }, local.all_tags)
 }
