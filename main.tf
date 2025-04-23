@@ -43,6 +43,19 @@ resource "aws_security_group_rule" "default_ingress" {
   cidr_blocks       = concat(try(var.settings.vpc_cidr_blocks, []), [var.vpc.vpc_cidr_block])
 }
 
+resource "aws_security_group_rule" "ingress_rules" {
+  for_each = {
+    for rules in try(var.settings.ingress_rules, []) : "${local.endpoint_name}-${try(rules.protocol, "TCP")}-${rules.from_port}-${rules.to_port}" => rules
+  }
+  security_group_id = aws_security_group.default.id
+  description       = "Allow traffic for Endpoint - ${local.endpoint_name_long} - ${each.key}"
+  type              = try(each.value.type, "ingress")
+  protocol          = try(each.value.protocol, "TCP")
+  from_port         = each.value.from_port
+  to_port           = each.value.to_port
+  cidr_blocks       = concat(try(var.settings.vpc_cidr_blocks, []), [var.vpc.vpc_cidr_block])
+}
+
 resource "aws_vpc_endpoint" "this" {
   vpc_id              = var.vpc.vpc_id
   service_name        = var.private_link_id
